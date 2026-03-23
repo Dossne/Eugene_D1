@@ -18,7 +18,47 @@ namespace Hakaton.Lemmings
         private static readonly Color32 Dark = new Color32(20, 24, 40, 255);
         private static readonly Color32 Glow = new Color32(255, 237, 124, 255);
 
-        public static Sprite CreateLemmingWalkSprite(int frame)
+        public static Sprite CreateLemmingAtlasSprite(int frame)
+        {
+            const string textureCacheKey = "lemming_atlas_texture";
+            string spritePath = Path.Combine(Application.dataPath, "Sprites", "lemming_atlas.png");
+            if (File.Exists(spritePath))
+            {
+                if (!SpriteCache.TryGetValue(textureCacheKey, out Sprite cachedTextureSprite))
+                {
+                    byte[] imageBytes = File.ReadAllBytes(spritePath);
+                    Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                    texture.filterMode = FilterMode.Point;
+                    texture.wrapMode = TextureWrapMode.Clamp;
+                    if (texture.LoadImage(imageBytes))
+                    {
+                        cachedTextureSprite = Sprite.Create(
+                            texture,
+                            new Rect(0f, 0f, texture.width, texture.height),
+                            new Vector2(0.5f, 0f),
+                            128f);
+                        SpriteCache[textureCacheKey] = cachedTextureSprite;
+                    }
+                }
+
+                if (cachedTextureSprite != null)
+                {
+                    int clampedFrame = Mathf.Clamp(frame, 0, 5);
+                    const int frameWidth = 128;
+                    const int frameHeight = 128;
+                    int frameX = frameWidth * clampedFrame;
+                    return GetOrCreateTextureSprite(
+                        $"lemming_atlas_frame_{clampedFrame}",
+                        cachedTextureSprite.texture,
+                        new Rect(frameX, 0f, frameWidth, frameHeight),
+                        new Vector2(0.5f, 0f));
+                }
+            }
+
+            return CreateLegacyLemmingWalkSprite(Mathf.Clamp(frame, 0, 1));
+        }
+
+        private static Sprite CreateLegacyLemmingWalkSprite(int frame)
         {
             return GetOrCreateSprite(
                 $"lemming_walk_{frame}",
@@ -51,7 +91,7 @@ namespace Hakaton.Lemmings
                     });
         }
 
-        public static Sprite CreateLemmingDigSprite(int frame)
+        private static Sprite CreateLegacyLemmingDigSprite(int frame)
         {
             return GetOrCreateSprite(
                 $"lemming_dig_{frame}",

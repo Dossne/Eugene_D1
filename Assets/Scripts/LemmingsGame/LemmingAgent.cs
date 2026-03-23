@@ -14,6 +14,7 @@ namespace Hakaton.Lemmings
         private const float AnimationRate = 0.22f;
         private static readonly Vector2 DigDirection = new Vector2(0.8660254f, -0.5f);
 
+        private readonly Sprite[] fallSprites = new Sprite[2];
         private readonly Sprite[] walkSprites = new Sprite[2];
         private readonly Sprite[] digSprites = new Sprite[2];
 
@@ -45,14 +46,16 @@ namespace Hakaton.Lemmings
         {
             terrainMap = terrain;
             transform.position = spawnPosition;
-            walkSprites[0] = PixelArtFactory.CreateLemmingWalkSprite(0);
-            walkSprites[1] = PixelArtFactory.CreateLemmingWalkSprite(1);
-            digSprites[0] = PixelArtFactory.CreateLemmingDigSprite(0);
-            digSprites[1] = PixelArtFactory.CreateLemmingDigSprite(1);
+            fallSprites[0] = PixelArtFactory.CreateLemmingAtlasSprite(0);
+            fallSprites[1] = PixelArtFactory.CreateLemmingAtlasSprite(1);
+            walkSprites[0] = PixelArtFactory.CreateLemmingAtlasSprite(2);
+            walkSprites[1] = PixelArtFactory.CreateLemmingAtlasSprite(3);
+            digSprites[0] = PixelArtFactory.CreateLemmingAtlasSprite(4);
+            digSprites[1] = PixelArtFactory.CreateLemmingAtlasSprite(5);
 
             spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             spriteRenderer.sortingOrder = 10;
-            spriteRenderer.sprite = walkSprites[0];
+            spriteRenderer.sprite = fallSprites[0];
 
             GameObject highlightObject = new GameObject("Highlight");
             highlightObject.transform.SetParent(transform, false);
@@ -277,7 +280,19 @@ namespace Hakaton.Lemmings
                 return;
             }
 
-            spriteRenderer.sprite = IsDigging ? digSprites[animationFrame] : walkSprites[animationFrame];
+            if (forceInitialFall || isFalling)
+            {
+                spriteRenderer.sprite = fallSprites[animationFrame];
+            }
+            else if (IsDigging)
+            {
+                spriteRenderer.sprite = digSprites[animationFrame];
+            }
+            else
+            {
+                spriteRenderer.sprite = walkSprites[animationFrame];
+            }
+
             spriteRenderer.flipX = Direction < 0;
         }
 
