@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace Hakaton.Lemmings
@@ -128,6 +129,31 @@ namespace Hakaton.Lemmings
 
         public static Sprite CreateExitSprite()
         {
+            const string cacheKey = "exit_point_asset";
+            if (SpriteCache.TryGetValue(cacheKey, out Sprite cachedExitSprite))
+            {
+                return cachedExitSprite;
+            }
+
+            string spritePath = Path.Combine(Application.dataPath, "Sprites", "exit_point.png");
+            if (File.Exists(spritePath))
+            {
+                byte[] imageBytes = File.ReadAllBytes(spritePath);
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                texture.filterMode = FilterMode.Point;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                if (texture.LoadImage(imageBytes))
+                {
+                    Sprite loadedSprite = Sprite.Create(
+                        texture,
+                        new Rect(0f, 0f, texture.width, texture.height),
+                        new Vector2(0.5f, 0f),
+                        texture.height);
+                    SpriteCache[cacheKey] = loadedSprite;
+                    return loadedSprite;
+                }
+            }
+
             return GetOrCreateSprite(
                 "exit",
                 new[]

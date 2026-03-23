@@ -223,10 +223,16 @@ namespace Hakaton.Lemmings
 
             GameObject exitObject = new GameObject("Exit");
             exitObject.transform.SetParent(parent, false);
-            SpriteRenderer exitRenderer = exitObject.AddComponent<SpriteRenderer>();
+            exitObject.transform.position = new Vector3(level.ExitCell.x, level.ExitCell.y, 0f);
+
+            GameObject exitVisualObject = new GameObject("Visual");
+            exitVisualObject.transform.SetParent(exitObject.transform, false);
+            exitVisualObject.transform.localPosition = new Vector3(0f, -0.15f, 0f);
+            exitVisualObject.transform.localScale = new Vector3(2f, 2f, 1f);
+
+            SpriteRenderer exitRenderer = exitVisualObject.AddComponent<SpriteRenderer>();
             exitRenderer.sprite = PixelArtFactory.CreateExitSprite();
             exitRenderer.sortingOrder = 3;
-            exitObject.transform.position = new Vector3(level.ExitCell.x, level.ExitCell.y, 0f);
             exitRect = new Rect(level.ExitCell.x - 0.35f, level.ExitCell.y, 0.7f, 0.82f);
 
             for (int i = 0; i < level.Spikes.Count; i++)
