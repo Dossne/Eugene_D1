@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Hakaton.Lemmings
 {
@@ -80,6 +81,41 @@ namespace Hakaton.Lemmings
             return OverlapsSolid(rect);
         }
 
+        public bool TryGetPlatformBodyAtWorld(Vector2 worldPoint, out int bodyId, out float bottomY)
+        {
+            bodyId = -1;
+            bottomY = 0f;
+
+            if (!TryFindPlatformPixelNearWorld(worldPoint, out int startX, out int startY))
+            {
+                return false;
+            }
+
+            bool[] visited = new bool[materialPixels.Length];
+            Queue<Vector2Int> queue = new Queue<Vector2Int>();
+            queue.Enqueue(new Vector2Int(startX, startY));
+            visited[ToIndex(startX, startY)] = true;
+
+            int minY = startY;
+            int minX = startX;
+
+            while (queue.Count > 0)
+            {
+                Vector2Int pixel = queue.Dequeue();
+                minY = Mathf.Min(minY, pixel.y);
+                minX = Mathf.Min(minX, pixel.x);
+
+                TryEnqueuePlatformPixel(pixel.x + 1, pixel.y, visited, queue);
+                TryEnqueuePlatformPixel(pixel.x - 1, pixel.y, visited, queue);
+                TryEnqueuePlatformPixel(pixel.x, pixel.y + 1, visited, queue);
+                TryEnqueuePlatformPixel(pixel.x, pixel.y - 1, visited, queue);
+            }
+
+            bodyId = minY * widthPixels + minX;
+            bottomY = minY / (float)PixelsPerCell;
+            return true;
+        }
+
         public void DigCircle(Vector2 worldCenter, float radius)
         {
             int minX = Mathf.Max(0, Mathf.FloorToInt((worldCenter.x - radius) * PixelsPerCell));
@@ -145,6 +181,52 @@ namespace Hakaton.Lemmings
             {
                 colorPixels[index] = ColorFor(materialPixels[index]);
             }
+        }
+
+        private bool TryFindPlatformPixelNearWorld(Vector2 worldPoint, out int pixelX, out int pixelY)
+        {
+            pixelX = Mathf.Clamp(Mathf.FloorToInt(worldPoint.x * PixelsPerCell), 0, widthPixels - 1);
+            pixelY = Mathf.Clamp(Mathf.FloorToInt(worldPoint.y * PixelsPerCell), 0, heightPixels - 1);
+
+            if (materialPixels[ToIndex(pixelX, pixelY)] == TerrainMaterial.Platform)
+            {
+                return true;
+            }
+
+            int searchDepth = Mathf.Min(PixelsPerCell * 2, heightPixels - 1);
+            for (int offset = 1; offset <= searchDepth; offset++)
+            {
+                int candidateY = pixelY - offset;
+                if (candidateY < 0)
+                {
+                    break;
+                }
+
+                if (materialPixels[ToIndex(pixelX, candidateY)] == TerrainMaterial.Platform)
+                {
+                    pixelY = candidateY;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void TryEnqueuePlatformPixel(int x, int y, bool[] visited, Queue<Vector2Int> queue)
+        {
+            if (x < 0 || x >= widthPixels || y < 0 || y >= heightPixels)
+            {
+                return;
+            }
+
+            int index = ToIndex(x, y);
+            if (visited[index] || materialPixels[index] != TerrainMaterial.Platform)
+            {
+                return;
+            }
+
+            visited[index] = true;
+            queue.Enqueue(new Vector2Int(x, y));
         }
 
         private bool SampleRect(Rect rect, params TerrainMaterial[] materials)

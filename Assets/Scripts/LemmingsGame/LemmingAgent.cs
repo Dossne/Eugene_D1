@@ -12,6 +12,7 @@ namespace Hakaton.Lemmings
         private const float DigSpeed = 0.85f;
         private const float DigRadius = 0.34f;
         private const float AnimationRate = 0.22f;
+        private static readonly Vector2 DigDirection = new Vector2(0.8660254f, -0.5f);
 
         private readonly Sprite[] walkSprites = new Sprite[2];
         private readonly Sprite[] digSprites = new Sprite[2];
@@ -22,6 +23,8 @@ namespace Hakaton.Lemmings
         private float animationTimer;
         private int animationFrame;
         private TerrainMap terrainMap;
+        private int currentDigPlatformId = -1;
+        private float currentDigPlatformBottomY;
         private bool forceInitialFall;
         private bool isFalling;
 
@@ -87,7 +90,16 @@ namespace Hakaton.Lemmings
                 return;
             }
 
+            Vector2 platformProbe = (Vector2)transform.position + new Vector2(0f, -0.05f);
+            if (!terrainMap.TryGetPlatformBodyAtWorld(platformProbe, out currentDigPlatformId, out currentDigPlatformBottomY))
+            {
+                currentDigPlatformId = -1;
+                currentDigPlatformBottomY = Mathf.Floor(transform.position.y - 0.02f);
+            }
+
             IsDigging = true;
+            forceInitialFall = false;
+            isFalling = false;
             verticalVelocity = 0f;
             animationFrame = 0;
             animationTimer = 0f;
@@ -195,6 +207,7 @@ namespace Hakaton.Lemmings
                 IsDigging = false;
                 forceInitialFall = false;
                 isFalling = false;
+                currentDigPlatformId = -1;
                 return;
             }
         }
@@ -202,7 +215,9 @@ namespace Hakaton.Lemmings
         private void UpdateDigging(float deltaTime)
         {
             Vector2 currentPosition = transform.position;
-            Vector2 step = new Vector2(Direction * DigSpeed * deltaTime, -DigSpeed * deltaTime);
+            Vector2 step = new Vector2(
+                Direction * DigDirection.x * DigSpeed * deltaTime,
+                DigDirection.y * DigSpeed * deltaTime);
             Rect sideProbe = OffsetRect(BoundsRect, new Vector2(Mathf.Sign(Direction) * 0.15f, 0f));
 
             if (terrainMap.OverlapsIndestructible(sideProbe))
@@ -221,10 +236,9 @@ namespace Hakaton.Lemmings
                 transform.position = currentPosition + step;
             }
 
-            bool hasDiggableMaterialAhead = terrainMap.HasAnyDestructibleMaterialInRect(
-                OffsetRect(BoundsRect, new Vector2(Direction * 0.05f, -0.05f)));
-            bool grounded = terrainMap.IsGrounded((Vector2)transform.position, Width);
-            if (!hasDiggableMaterialAhead && !grounded)
+            bool pivotBelowBottomBoundary = transform.position.y < currentDigPlatformBottomY - 0.02f;
+            bool noPlatformOverlap = !terrainMap.HasAnyDestructibleMaterialInRect(BoundsRect);
+            if (pivotBelowBottomBoundary && noPlatformOverlap)
             {
                 EnterBreakthroughFall();
             }
@@ -236,6 +250,7 @@ namespace Hakaton.Lemmings
             forceInitialFall = false;
             isFalling = true;
             verticalVelocity = Mathf.Min(verticalVelocity, -0.35f);
+            currentDigPlatformId = -1;
             ResolveEmbeddedSolidForAirborneState();
         }
 
