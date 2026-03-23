@@ -246,11 +246,20 @@ namespace Hakaton.Lemmings
                 SpikeDefinition spike = level.Spikes[i];
                 GameObject spikeObject = new GameObject($"Spike_{i}");
                 spikeObject.transform.SetParent(parent, false);
-                SpriteRenderer renderer = spikeObject.AddComponent<SpriteRenderer>();
+                spikeObject.transform.position = new Vector3(spike.Rect.xMin, spike.Rect.yMin, 0f);
+
+                GameObject spikeVisualObject = new GameObject("Visual");
+                spikeVisualObject.transform.SetParent(spikeObject.transform, false);
+                spikeVisualObject.transform.localPosition = new Vector3(
+                    0f,
+                    spike.Orientation == SpikeOrientation.Down ? 1f : -0.5f,
+                    0f);
+                spikeVisualObject.transform.localScale = new Vector3(spike.Rect.width * 2f, spike.Rect.height * 2f, 1f);
+
+                SpriteRenderer renderer = spikeVisualObject.AddComponent<SpriteRenderer>();
                 renderer.sprite = PixelArtFactory.CreateSpikeSprite(spike.Orientation);
                 renderer.sortingOrder = 4;
-                spikeObject.transform.position = new Vector3(spike.Rect.xMin, spike.Rect.yMin, 0f);
-                spikeObject.transform.localScale = new Vector3(spike.Rect.width, spike.Rect.height, 1f);
+                renderer.flipY = spike.Orientation == SpikeOrientation.Down;
             }
         }
 

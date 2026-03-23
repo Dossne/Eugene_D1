@@ -270,94 +270,51 @@ namespace Hakaton.Lemmings
 
         public static Sprite CreateSpikeSprite(SpikeOrientation orientation)
         {
-            string key = $"spike_{orientation}";
-            switch (orientation)
+            const string cacheKey = "thorns_asset";
+            if (SpriteCache.TryGetValue(cacheKey, out Sprite cachedSpikeSprite))
             {
-                case SpikeOrientation.Down:
-                    return GetOrCreateSprite(
-                        key,
-                        new[]
-                        {
-                            "..........",
-                            "..........",
-                            "..........",
-                            "t..t..t..t",
-                            "tt.tt.tt.t",
-                            ".tttttttt.",
-                            "..tttttt..",
-                            "...tttt...",
-                            "....tt....",
-                            ".........."
-                        },
-                        new Dictionary<char, Color32>
-                        {
-                            { '.', Transparent },
-                            { 't', Metal }
-                        });
-                case SpikeOrientation.Left:
-                    return GetOrCreateSprite(
-                        key,
-                        new[]
-                        {
-                            "..........",
-                            "...t......",
-                            "..tt......",
-                            ".tttt.....",
-                            "tttttt....",
-                            ".tttt.....",
-                            "..tt......",
-                            "...t......",
-                            "..........",
-                            ".........."
-                        },
-                        new Dictionary<char, Color32>
-                        {
-                            { '.', Transparent },
-                            { 't', Metal }
-                        });
-                case SpikeOrientation.Right:
-                    return GetOrCreateSprite(
-                        key,
-                        new[]
-                        {
-                            "..........",
-                            "......t...",
-                            "......tt..",
-                            ".....tttt.",
-                            "....tttttt",
-                            ".....tttt.",
-                            "......tt..",
-                            "......t...",
-                            "..........",
-                            ".........."
-                        },
-                        new Dictionary<char, Color32>
-                        {
-                            { '.', Transparent },
-                            { 't', Metal }
-                        });
-                default:
-                    return GetOrCreateSprite(
-                        key,
-                        new[]
-                        {
-                            "....tt....",
-                            "...tttt...",
-                            "..tttttt..",
-                            ".tttttttt.",
-                            "tt.tt.tt.t",
-                            "t..t..t..t",
-                            "..........",
-                            "..........",
-                            "..........",
-                            ".........."
-                        },
-                        new Dictionary<char, Color32>
-                        {
-                            { '.', Transparent },
-                            { 't', Metal }
-                        });
+                return cachedSpikeSprite;
             }
+
+            string spritePath = Path.Combine(Application.dataPath, "Sprites", "thorns.png");
+            if (File.Exists(spritePath))
+            {
+                byte[] imageBytes = File.ReadAllBytes(spritePath);
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                texture.filterMode = FilterMode.Point;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                if (texture.LoadImage(imageBytes))
+                {
+                    Sprite loadedSprite = Sprite.Create(
+                        texture,
+                        new Rect(0f, 0f, texture.width, texture.height),
+                        new Vector2(0.5f, 0f),
+                        texture.height);
+                    SpriteCache[cacheKey] = loadedSprite;
+                    return loadedSprite;
+                }
+            }
+
+            return GetOrCreateSprite(
+                "spike_fallback",
+                new[]
+                {
+                    "....tt....",
+                    "...tttt...",
+                    "..tttttt..",
+                    ".tttttttt.",
+                    "tt.tt.tt.t",
+                    "t..t..t..t",
+                    "..........",
+                    "..........",
+                    "..........",
+                    ".........."
+                },
+                new Dictionary<char, Color32>
+                {
+                    { '.', Transparent },
+                    { 't', Metal }
+                });
         }
 
         public static Font GetUIFont()
