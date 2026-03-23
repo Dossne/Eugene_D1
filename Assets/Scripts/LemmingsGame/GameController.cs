@@ -218,7 +218,7 @@ namespace Hakaton.Lemmings
             SpriteRenderer spawnRenderer = spawnObject.AddComponent<SpriteRenderer>();
             spawnRenderer.sprite = PixelArtFactory.CreateSpawnSprite();
             spawnRenderer.sortingOrder = 3;
-            spawnObject.transform.position = new Vector3(level.SpawnCell.x, level.SpawnCell.y + 0.1f, 0f);
+            spawnObject.transform.position = new Vector3(level.SpawnPoint.x, level.SpawnPoint.y, 0f);
 
             GameObject exitObject = new GameObject("Exit");
             exitObject.transform.SetParent(parent, false);
@@ -269,7 +269,7 @@ namespace Hakaton.Lemmings
             GameObject lemmingObject = new GameObject($"Lemming_{spawnedCount + 1}");
             lemmingObject.transform.SetParent(levelRoot.transform, false);
             LemmingAgent lemming = lemmingObject.AddComponent<LemmingAgent>();
-            lemming.Initialize(terrainMap, currentLevel.SpawnCell);
+            lemming.Initialize(terrainMap, currentLevel.SpawnPoint);
             lemmings.Add(lemming);
             RefreshHighlights();
         }

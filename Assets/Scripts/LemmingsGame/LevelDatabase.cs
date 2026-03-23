@@ -7,7 +7,8 @@ namespace Hakaton.Lemmings
     {
         Empty,
         Platform,
-        Wall
+        Wall,
+        DecorativePlatform
     }
 
     public enum SpikeOrientation
@@ -51,7 +52,7 @@ namespace Hakaton.Lemmings
             TerrainMaterial[,] terrainCells,
             bool[,] destructibleCells,
             IReadOnlyList<SpikeDefinition> spikes,
-            Vector2 spawnCell,
+            Vector2 spawnPoint,
             Vector2 exitCell)
         {
             Number = number;
@@ -60,7 +61,7 @@ namespace Hakaton.Lemmings
             TerrainCells = terrainCells;
             DestructibleCells = destructibleCells;
             Spikes = spikes;
-            SpawnCell = spawnCell;
+            SpawnPoint = spawnPoint;
             ExitCell = exitCell;
         }
 
@@ -70,7 +71,7 @@ namespace Hakaton.Lemmings
         public TerrainMaterial[,] TerrainCells { get; }
         public bool[,] DestructibleCells { get; }
         public IReadOnlyList<SpikeDefinition> Spikes { get; }
-        public Vector2 SpawnCell { get; }
+        public Vector2 SpawnPoint { get; }
         public Vector2 ExitCell { get; }
         public Vector2 WorldSize => new Vector2(WidthCells, HeightCells);
     }
@@ -85,7 +86,7 @@ namespace Hakaton.Lemmings
                 "|^^^^^^^^^^^^^^^^|",
                 "|                |",
                 "|                |",
-                "|___             |",
+                "|----            |",
                 "| A              |",
                 "|                |",
                 "|________________|",
@@ -102,7 +103,7 @@ namespace Hakaton.Lemmings
                 "|^^^^^^^^^^^^^^^^|",
                 "|                |",
                 "|                |",
-                "|___             |",
+                "|---             |",
                 "| A              |",
                 "|                |",
                 "|________________|",
@@ -118,7 +119,7 @@ namespace Hakaton.Lemmings
                 "_________________",
                 "|^^^^^^^^^^^^^^^^|",
                 "|                |",
-                "|___             |",
+                "|---             |",
                 "| A              |",
                 "|________________|",
                 "|                |",
@@ -165,11 +166,16 @@ namespace Hakaton.Lemmings
                             terrain[column, worldRow] = TerrainMaterial.Platform;
                             destructible[column, worldRow] = true;
                             break;
+                        case '-':
+                            terrain[column, worldRow] = TerrainMaterial.DecorativePlatform;
+                            break;
                         case '|':
                             terrain[column, worldRow] = TerrainMaterial.Wall;
                             break;
                         case 'A':
-                            spawn = new Vector2(column + 0.5f, worldRow + 0.32f);
+                            // "A" already marks the hole position in open air below a platform.
+                            // Use that cell directly and let the lemming begin in falling state.
+                            spawn = new Vector2(column + 0.5f, worldRow + 0.5f);
                             break;
                         case 'B':
                             exit = new Vector2(column + 0.5f, worldRow + 0.18f);

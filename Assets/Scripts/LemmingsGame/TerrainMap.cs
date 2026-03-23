@@ -183,6 +183,8 @@ namespace Hakaton.Lemmings
             {
                 case TerrainMaterial.Platform:
                     return new Color32(164, 112, 78, 255);
+                case TerrainMaterial.DecorativePlatform:
+                    return new Color32(196, 158, 108, 255);
                 case TerrainMaterial.Wall:
                     return new Color32(96, 117, 149, 255);
                 default:
