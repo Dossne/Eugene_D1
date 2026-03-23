@@ -342,7 +342,7 @@ namespace Hakaton.Lemmings
             }
 
             Vector2 offset = Random.insideUnitCircle;
-            Vector2 effectPosition = currentLevel.ExitCell + offset;
+            Vector2 effectPosition = currentLevel.ExitCell + new Vector2(0f, 0.8f) + offset;
             StartCoroutine(AnimateExitEffect(effectPosition, Random.Range(1.5f, 2f)));
         }
 
