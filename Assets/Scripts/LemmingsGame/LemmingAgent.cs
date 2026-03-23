@@ -22,6 +22,8 @@ namespace Hakaton.Lemmings
         private float animationTimer;
         private int animationFrame;
         private TerrainMap terrainMap;
+        private bool forceInitialFall;
+        private bool isFalling;
 
         public int Direction { get; private set; } = 1;
         public bool IsAlive { get; private set; }
@@ -60,6 +62,9 @@ namespace Hakaton.Lemmings
             IsAlive = true;
             animationTimer = 0f;
             animationFrame = 0;
+            forceInitialFall = true;
+            isFalling = true;
+            verticalVelocity = 0f;
         }
 
         public void SetHighlighted(bool highlighted)
@@ -92,7 +97,11 @@ namespace Hakaton.Lemmings
 
             AdvanceAnimation(deltaTime);
 
-            if (IsDigging)
+            if (forceInitialFall || isFalling)
+            {
+                UpdateFalling(deltaTime);
+            }
+            else if (IsDigging)
             {
                 UpdateDigging(deltaTime);
             }
@@ -140,27 +149,21 @@ namespace Hakaton.Lemmings
 
         private void UpdateWalking(float deltaTime)
         {
-            bool grounded = terrainMap.IsGrounded((Vector2)transform.position, Width);
-            if (!grounded)
-            {
-                UpdateFalling(deltaTime);
-                return;
-            }
-
             verticalVelocity = 0f;
             float horizontalMove = Direction * WalkSpeed * deltaTime;
-            Rect nextRect = OffsetRect(BoundsRect, new Vector2(horizontalMove, 0f));
-            if (terrainMap.OverlapsSolid(nextRect))
+            Rect wallProbe = BuildWallProbe(horizontalMove);
+            if (terrainMap.OverlapsSolid(wallProbe))
             {
                 Direction *= -1;
                 return;
             }
 
-            transform.position += new Vector3(horizontalMove, 0f, 0f);
+            Vector2 nextPosition = (Vector2)transform.position + new Vector2(horizontalMove, 0f);
+            transform.position = new Vector3(nextPosition.x, nextPosition.y, transform.position.z);
 
-            if (!terrainMap.IsGrounded((Vector2)transform.position + new Vector2(Direction * 0.15f, 0f), Width * 0.75f))
+            if (!terrainMap.IsGrounded(nextPosition, Width))
             {
-                UpdateFalling(deltaTime);
+                isFalling = true;
             }
         }
 
@@ -186,6 +189,8 @@ namespace Hakaton.Lemmings
                 }
 
                 verticalVelocity = 0f;
+                forceInitialFall = false;
+                isFalling = false;
                 return;
             }
         }
@@ -215,7 +220,7 @@ namespace Hakaton.Lemmings
             if (!terrainMap.HasAnyDestructibleMaterialInRect(OffsetRect(BoundsRect, new Vector2(Direction * 0.05f, -0.05f))) &&
                 !terrainMap.IsGrounded((Vector2)transform.position, Width))
             {
-                UpdateFalling(deltaTime);
+                isFalling = true;
             }
         }
 
@@ -233,6 +238,16 @@ namespace Hakaton.Lemmings
         private static Rect OffsetRect(Rect rect, Vector2 offset)
         {
             return new Rect(rect.position + offset, rect.size);
+        }
+
+        private Rect BuildWallProbe(float horizontalMove)
+        {
+            Rect bounds = BoundsRect;
+            float probeWidth = Mathf.Max(0.04f, Mathf.Abs(horizontalMove) + 0.04f);
+            float probeHeight = Height * 0.55f;
+            float probeY = bounds.y + Height * 0.22f;
+            float probeX = Direction > 0 ? bounds.xMax : bounds.xMin - probeWidth;
+            return new Rect(probeX, probeY, probeWidth, probeHeight);
         }
     }
 }
