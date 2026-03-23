@@ -11,6 +11,7 @@ namespace Hakaton.Lemmings
         private const int LemmingsPerLevel = 10;
         private const float SpawnDelay = 2f;
         private const float SpawnInterval = 1f;
+        private const int EffectSortingOrder = 100;
 
         private readonly List<LemmingAgent> lemmings = new List<LemmingAgent>();
 
@@ -78,6 +79,7 @@ namespace Hakaton.Lemmings
                 if (exitRect.Overlaps(lemming.BoundsRect))
                 {
                     savedCount++;
+                    PlayExitEffect();
                     lemming.Save();
                     lemmings.RemoveAt(index);
                     RefreshCounters();
@@ -330,6 +332,46 @@ namespace Hakaton.Lemmings
             {
                 spawnRenderer.sprite = PixelArtFactory.CreateSpawnSprite(isOpen ? 1 : 0);
             }
+        }
+
+        private void PlayExitEffect()
+        {
+            if (levelRoot == null)
+            {
+                return;
+            }
+
+            Vector2 offset = Random.insideUnitCircle;
+            Vector2 effectPosition = currentLevel.ExitCell + offset;
+            StartCoroutine(AnimateExitEffect(effectPosition, Random.Range(1.5f, 2f)));
+        }
+
+        private IEnumerator AnimateExitEffect(Vector2 position, float duration)
+        {
+            GameObject effectObject = new GameObject("ExitEffect");
+            effectObject.transform.SetParent(levelRoot.transform, false);
+            effectObject.transform.position = new Vector3(position.x, position.y, 0f);
+            effectObject.transform.localScale = Vector3.zero;
+
+            SpriteRenderer effectRenderer = effectObject.AddComponent<SpriteRenderer>();
+            effectRenderer.sprite = PixelArtFactory.CreateStarEffectSprite();
+            effectRenderer.sortingOrder = EffectSortingOrder;
+            effectRenderer.color = new Color(1f, 1f, 1f, 0f);
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float normalized = Mathf.Clamp01(elapsed / duration);
+                float t = normalized * Mathf.PI;
+                float envelope = Mathf.Sin(t);
+                float brightness = Mathf.Lerp(1f, 2.5f, envelope);
+                effectRenderer.color = new Color(brightness, brightness, brightness, envelope);
+                effectObject.transform.localScale = Vector3.one * (2f * envelope);
+                yield return null;
+            }
+
+            Destroy(effectObject);
         }
 
         private void TogglePickaxeSelection()

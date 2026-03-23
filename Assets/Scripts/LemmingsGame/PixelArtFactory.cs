@@ -382,6 +382,50 @@ namespace Hakaton.Lemmings
                 });
         }
 
+        public static Sprite CreateStarEffectSprite()
+        {
+            const string cacheKey = "star_effect_asset";
+            if (SpriteCache.TryGetValue(cacheKey, out Sprite cachedStarSprite))
+            {
+                return cachedStarSprite;
+            }
+
+            string spritePath = Path.Combine(Application.dataPath, "Sprites", "star.png");
+            if (File.Exists(spritePath))
+            {
+                byte[] imageBytes = File.ReadAllBytes(spritePath);
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                texture.filterMode = FilterMode.Point;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                if (texture.LoadImage(imageBytes))
+                {
+                    Sprite loadedSprite = Sprite.Create(
+                        texture,
+                        new Rect(0f, 0f, texture.width, texture.height),
+                        new Vector2(0.5f, 0.5f),
+                        texture.height);
+                    SpriteCache[cacheKey] = loadedSprite;
+                    return loadedSprite;
+                }
+            }
+
+            return GetOrCreateSprite(
+                "star_effect_fallback",
+                new[]
+                {
+                    ".....y.....",
+                    ".....y.....",
+                    "..y..y..y..",
+                    "...yyyyy...",
+                    "yyyyyyyyyyy",
+                    "...yyyyy...",
+                    "..y..y..y..",
+                    ".....y.....",
+                    ".....y.....",
+                    "..........."
+                });
+        }
+
         public static Font GetUIFont()
         {
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
