@@ -10,7 +10,7 @@ namespace Hakaton.Lemmings
         private const float Gravity = 9.2f;
         private const float FallStep = 0.06f;
         private const float DigSpeed = 0.85f;
-        private const float DigRadius = 0.34f;
+        private const float DigRadius = 0.46f;
         private const float AnimationRate = 0.22f;
         private static readonly Vector2 DigDirection = new Vector2(0.8660254f, -0.5f);
 
@@ -228,7 +228,8 @@ namespace Hakaton.Lemmings
 
             Vector2 digTarget = currentPosition + new Vector2(step.x * 0.8f, step.y * 0.8f + 0.1f);
             terrainMap.DigCircle(digTarget, DigRadius);
-            terrainMap.DigCircle(digTarget + new Vector2(0f, 0.26f), DigRadius * 0.95f);
+            terrainMap.DigCircle(digTarget + new Vector2(0f, 0.3f), DigRadius);
+            terrainMap.DigCircle(digTarget + new Vector2(Direction * 0.18f, 0.14f), DigRadius * 0.9f);
 
             Rect nextRect = OffsetRect(BoundsRect, step);
             if (!terrainMap.OverlapsIndestructible(nextRect))
