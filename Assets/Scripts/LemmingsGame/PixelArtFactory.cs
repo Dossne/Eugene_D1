@@ -105,6 +105,39 @@ namespace Hakaton.Lemmings
 
         public static Sprite CreateSpawnSprite()
         {
+            const string textureCacheKey = "spawn_point_texture";
+            string spritePath = Path.Combine(Application.dataPath, "Sprites", "spawn_point.png");
+            if (File.Exists(spritePath))
+            {
+                if (!SpriteCache.TryGetValue(textureCacheKey, out Sprite cachedTextureSprite))
+                {
+                    byte[] imageBytes = File.ReadAllBytes(spritePath);
+                    Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                    texture.filterMode = FilterMode.Point;
+                    texture.wrapMode = TextureWrapMode.Clamp;
+                    if (texture.LoadImage(imageBytes))
+                    {
+                        cachedTextureSprite = Sprite.Create(
+                            texture,
+                            new Rect(0f, 0f, texture.width, texture.height),
+                            new Vector2(0.5f, 0f),
+                            texture.height * 0.5f);
+                        SpriteCache[textureCacheKey] = cachedTextureSprite;
+                    }
+                }
+
+                if (cachedTextureSprite != null)
+                {
+                    int frameWidth = cachedTextureSprite.texture.width / 2;
+                    int frameX = frameWidth * Mathf.Clamp(0, 0, 1);
+                    return GetOrCreateTextureSprite(
+                        "spawn_point_frame_0",
+                        cachedTextureSprite.texture,
+                        new Rect(frameX, 0f, frameWidth, cachedTextureSprite.texture.height),
+                        new Vector2(0.5f, 0.5f));
+                }
+            }
+
             return GetOrCreateSprite(
                 "spawn",
                 new[]
@@ -125,6 +158,45 @@ namespace Hakaton.Lemmings
                     { '.', Transparent },
                     { 'd', new Color32(32, 20, 26, 255) }
                 });
+        }
+
+        public static Sprite CreateSpawnSprite(int frame)
+        {
+            const string textureCacheKey = "spawn_point_texture";
+            string spritePath = Path.Combine(Application.dataPath, "Sprites", "spawn_point.png");
+            if (File.Exists(spritePath))
+            {
+                if (!SpriteCache.TryGetValue(textureCacheKey, out Sprite cachedTextureSprite))
+                {
+                    byte[] imageBytes = File.ReadAllBytes(spritePath);
+                    Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                    texture.filterMode = FilterMode.Point;
+                    texture.wrapMode = TextureWrapMode.Clamp;
+                    if (texture.LoadImage(imageBytes))
+                    {
+                        cachedTextureSprite = Sprite.Create(
+                            texture,
+                            new Rect(0f, 0f, texture.width, texture.height),
+                            new Vector2(0.5f, 0f),
+                            texture.height * 0.5f);
+                        SpriteCache[textureCacheKey] = cachedTextureSprite;
+                    }
+                }
+
+                if (cachedTextureSprite != null)
+                {
+                    int clampedFrame = Mathf.Clamp(frame, 0, 1);
+                    int frameWidth = cachedTextureSprite.texture.width / 2;
+                    int frameX = frameWidth * clampedFrame;
+                    return GetOrCreateTextureSprite(
+                        $"spawn_point_frame_{clampedFrame}",
+                        cachedTextureSprite.texture,
+                        new Rect(frameX, 0f, frameWidth, cachedTextureSprite.texture.height),
+                        new Vector2(0.5f, 0.5f));
+                }
+            }
+
+            return CreateSpawnSprite();
         }
 
         public static Sprite CreateExitSprite()
@@ -335,6 +407,18 @@ namespace Hakaton.Lemmings
             texture.Apply();
 
             Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, width, height), new Vector2(0.5f, 0f), height);
+            SpriteCache[cacheKey] = sprite;
+            return sprite;
+        }
+
+        private static Sprite GetOrCreateTextureSprite(string cacheKey, Texture2D texture, Rect rect, Vector2 pivot)
+        {
+            if (SpriteCache.TryGetValue(cacheKey, out Sprite cachedSprite))
+            {
+                return cachedSprite;
+            }
+
+            Sprite sprite = Sprite.Create(texture, rect, pivot, rect.height);
             SpriteCache[cacheKey] = sprite;
             return sprite;
         }

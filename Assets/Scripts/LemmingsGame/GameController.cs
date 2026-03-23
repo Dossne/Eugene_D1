@@ -25,6 +25,7 @@ namespace Hakaton.Lemmings
         private Text popupMessageText;
         private Button popupButton;
         private Text popupButtonText;
+        private SpriteRenderer spawnRenderer;
 
         private GameObject levelRoot;
         private TerrainMap terrainMap;
@@ -216,10 +217,15 @@ namespace Hakaton.Lemmings
         {
             GameObject spawnObject = new GameObject("Spawn");
             spawnObject.transform.SetParent(parent, false);
-            SpriteRenderer spawnRenderer = spawnObject.AddComponent<SpriteRenderer>();
+            spawnObject.transform.position = new Vector3(level.SpawnPoint.x, level.SpawnPoint.y, 0f);
+
+            GameObject spawnVisualObject = new GameObject("Visual");
+            spawnVisualObject.transform.SetParent(spawnObject.transform, false);
+            spawnVisualObject.transform.localScale = new Vector3(3f, 3f, 1f);
+
+            spawnRenderer = spawnVisualObject.AddComponent<SpriteRenderer>();
             spawnRenderer.sprite = PixelArtFactory.CreateSpawnSprite();
             spawnRenderer.sortingOrder = 3;
-            spawnObject.transform.position = new Vector3(level.SpawnPoint.x, level.SpawnPoint.y, 0f);
 
             GameObject exitObject = new GameObject("Exit");
             exitObject.transform.SetParent(parent, false);
@@ -259,7 +265,10 @@ namespace Hakaton.Lemmings
 
         private IEnumerator SpawnLemmings()
         {
-            yield return new WaitForSeconds(SpawnDelay);
+            yield return new WaitForSeconds(Mathf.Max(0f, SpawnDelay - 0.5f));
+            SetSpawnVisualOpen(true);
+            yield return new WaitForSeconds(0.5f);
+
             while (spawnedCount < LemmingsPerLevel)
             {
                 SpawnSingleLemming();
@@ -269,6 +278,9 @@ namespace Hakaton.Lemmings
                     yield return new WaitForSeconds(SpawnInterval);
                 }
             }
+
+            yield return new WaitForSeconds(2f);
+            SetSpawnVisualOpen(false);
         }
 
         private void SpawnSingleLemming()
@@ -301,6 +313,14 @@ namespace Hakaton.Lemmings
             }
 
             introText.color = new Color(1f, 1f, 1f, to);
+        }
+
+        private void SetSpawnVisualOpen(bool isOpen)
+        {
+            if (spawnRenderer != null)
+            {
+                spawnRenderer.sprite = PixelArtFactory.CreateSpawnSprite(isOpen ? 1 : 0);
+            }
         }
 
         private void TogglePickaxeSelection()

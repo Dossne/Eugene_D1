@@ -83,7 +83,7 @@ namespace Hakaton.Lemmings
             new LevelDefinition(
                 1,
                 "__________________",
-                "|^^^^^^^^^^^^^^^^|",
+                "|vvvvvvvvvvvvvvvv|",
                 "|                |",
                 "|                |",
                 "|----            |",
@@ -107,7 +107,7 @@ namespace Hakaton.Lemmings
             new LevelDefinition(
                 2,
                 "__________________",
-                "|^^^^^^^^^^^^^^^^|",
+                "|vvvvvvvvvvvvvvvv|",
                 "|                |",
                 "|                |",
                 "|---             |",
@@ -131,7 +131,7 @@ namespace Hakaton.Lemmings
             new LevelDefinition(
                 3,
                 "__________________",
-                "|^^^^^^^^^^^^^^^^|",
+                "|vvvvvvvvvvvvvvvv|",
                 "|                |",
                 "|---             |",
                 "| A              |",
@@ -200,48 +200,17 @@ namespace Hakaton.Lemmings
                         case 'B':
                             exit = new Vector2(column + 0.5f, worldRow + 0.18f);
                             break;
+                        case '^':
+                            spikes.Add(new SpikeDefinition(BuildSpikeRect(column, worldRow, SpikeOrientation.Up), SpikeOrientation.Up));
+                            break;
+                        case 'v':
+                            spikes.Add(new SpikeDefinition(BuildSpikeRect(column, worldRow, SpikeOrientation.Down), SpikeOrientation.Down));
+                            break;
                     }
-                }
-            }
-
-            for (int row = 0; row < height; row++)
-            {
-                string line = definition.Rows[row];
-                for (int column = 0; column < width; column++)
-                {
-                    char symbol = column < line.Length ? line[column] : ' ';
-                    if (symbol != '^')
-                    {
-                        continue;
-                    }
-
-                    SpikeOrientation orientation = DetectOrientation(definition.Rows, width, height, row, column);
-                    int worldRow = height - 1 - row;
-                    spikes.Add(new SpikeDefinition(BuildSpikeRect(column, worldRow, orientation), orientation));
                 }
             }
 
             return new ParsedLevel(definition.Number, width, height, terrain, destructible, spikes, spawn, exit);
-        }
-
-        private static SpikeOrientation DetectOrientation(IReadOnlyList<string> rows, int width, int height, int row, int column)
-        {
-            if (IsSolidSymbol(ReadSymbol(rows, width, height, row - 1, column)))
-            {
-                return SpikeOrientation.Down;
-            }
-
-            if (IsSolidSymbol(ReadSymbol(rows, width, height, row + 1, column)))
-            {
-                return SpikeOrientation.Up;
-            }
-
-            if (IsSolidSymbol(ReadSymbol(rows, width, height, row, column - 1)))
-            {
-                return SpikeOrientation.Right;
-            }
-
-            return SpikeOrientation.Left;
         }
 
         private static Rect BuildSpikeRect(int column, int row, SpikeOrientation orientation)
@@ -260,22 +229,6 @@ namespace Hakaton.Lemmings
                 default:
                     return new Rect(column + inset, row + 0.54f, 1f - inset * 2f, depth);
             }
-        }
-
-        private static char ReadSymbol(IReadOnlyList<string> rows, int width, int height, int row, int column)
-        {
-            if (row < 0 || row >= height || column < 0 || column >= width)
-            {
-                return ' ';
-            }
-
-            string line = rows[row];
-            return column < line.Length ? line[column] : ' ';
-        }
-
-        private static bool IsSolidSymbol(char symbol)
-        {
-            return symbol == '_' || symbol == '|';
         }
     }
 }
