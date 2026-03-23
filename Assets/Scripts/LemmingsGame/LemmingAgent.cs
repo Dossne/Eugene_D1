@@ -6,10 +6,10 @@ namespace Hakaton.Lemmings
     {
         private const float Width = 0.56f;
         private const float Height = 0.9f;
-        private const float WalkSpeed = 1.1f;
+        private const float WalkSpeed = 1.21f;
         private const float Gravity = 9.2f;
         private const float FallStep = 0.06f;
-        private const float DigSpeed = 0.85f;
+        private const float DigSpeed = 0.935f;
         private const float DigRadius = 0.46f;
         private const float AnimationRate = 0.22f;
         private const float FallingAnimationThreshold = 0.2f;
