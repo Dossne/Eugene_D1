@@ -225,7 +225,7 @@ namespace Hakaton.Lemmings
 
             spawnRenderer = spawnVisualObject.AddComponent<SpriteRenderer>();
             spawnRenderer.sprite = PixelArtFactory.CreateSpawnSprite();
-            spawnRenderer.sortingOrder = 3;
+            spawnRenderer.sortingOrder = 13;
 
             GameObject exitObject = new GameObject("Exit");
             exitObject.transform.SetParent(parent, false);

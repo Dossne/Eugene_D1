@@ -10,8 +10,10 @@ namespace Hakaton.Lemmings
         private readonly int widthPixels;
         private readonly int heightPixels;
         private readonly TerrainMaterial[] materialPixels;
-        private readonly Color32[] colorPixels;
-        private readonly Texture2D texture;
+        private readonly Color32[] baseColorPixels;
+        private readonly Color32[] decorativeColorPixels;
+        private readonly Texture2D baseTexture;
+        private readonly Texture2D decorativeTexture;
 
         private bool dirty;
 
@@ -22,7 +24,8 @@ namespace Hakaton.Lemmings
             widthPixels = level.WidthCells * PixelsPerCell;
             heightPixels = level.HeightCells * PixelsPerCell;
             materialPixels = new TerrainMaterial[widthPixels * heightPixels];
-            colorPixels = new Color32[materialPixels.Length];
+            baseColorPixels = new Color32[materialPixels.Length];
+            decorativeColorPixels = new Color32[materialPixels.Length];
 
             for (int cellY = 0; cellY < level.HeightCells; cellY++)
             {
@@ -38,23 +41,41 @@ namespace Hakaton.Lemmings
                 }
             }
 
-            texture = new Texture2D(widthPixels, heightPixels, TextureFormat.RGBA32, false);
-            texture.filterMode = FilterMode.Point;
-            texture.wrapMode = TextureWrapMode.Clamp;
+            baseTexture = new Texture2D(widthPixels, heightPixels, TextureFormat.RGBA32, false);
+            baseTexture.filterMode = FilterMode.Point;
+            baseTexture.wrapMode = TextureWrapMode.Clamp;
+
+            decorativeTexture = new Texture2D(widthPixels, heightPixels, TextureFormat.RGBA32, false);
+            decorativeTexture.filterMode = FilterMode.Point;
+            decorativeTexture.wrapMode = TextureWrapMode.Clamp;
+
             RefreshAllColors();
-            texture.SetPixels32(colorPixels);
-            texture.Apply();
+            baseTexture.SetPixels32(baseColorPixels);
+            baseTexture.Apply();
+            decorativeTexture.SetPixels32(decorativeColorPixels);
+            decorativeTexture.Apply();
 
             GameObject terrainObject = new GameObject("Terrain");
             terrainObject.transform.SetParent(parent, false);
             terrainObject.transform.localPosition = Vector3.zero;
-            SpriteRenderer spriteRenderer = terrainObject.AddComponent<SpriteRenderer>();
-            spriteRenderer.sprite = Sprite.Create(
-                texture,
+            SpriteRenderer terrainRenderer = terrainObject.AddComponent<SpriteRenderer>();
+            terrainRenderer.sprite = Sprite.Create(
+                baseTexture,
                 new Rect(0f, 0f, widthPixels, heightPixels),
                 new Vector2(0f, 0f),
                 PixelsPerCell);
-            spriteRenderer.sortingOrder = 0;
+            terrainRenderer.sortingOrder = 0;
+
+            GameObject decorativeObject = new GameObject("DecorativeOverlay");
+            decorativeObject.transform.SetParent(parent, false);
+            decorativeObject.transform.localPosition = Vector3.zero;
+            SpriteRenderer decorativeRenderer = decorativeObject.AddComponent<SpriteRenderer>();
+            decorativeRenderer.sprite = Sprite.Create(
+                decorativeTexture,
+                new Rect(0f, 0f, widthPixels, heightPixels),
+                new Vector2(0f, 0f),
+                PixelsPerCell);
+            decorativeRenderer.sortingOrder = 12;
         }
 
         public int WidthCells { get; }
@@ -143,7 +164,8 @@ namespace Hakaton.Lemmings
                     }
 
                     materialPixels[index] = TerrainMaterial.Empty;
-                    colorPixels[index] = new Color32(0, 0, 0, 0);
+                    baseColorPixels[index] = new Color32(0, 0, 0, 0);
+                    decorativeColorPixels[index] = new Color32(0, 0, 0, 0);
                     dirty = true;
                 }
             }
@@ -156,8 +178,10 @@ namespace Hakaton.Lemmings
                 return;
             }
 
-            texture.SetPixels32(colorPixels);
-            texture.Apply(false);
+            baseTexture.SetPixels32(baseColorPixels);
+            baseTexture.Apply(false);
+            decorativeTexture.SetPixels32(decorativeColorPixels);
+            decorativeTexture.Apply(false);
             dirty = false;
         }
 
@@ -179,7 +203,8 @@ namespace Hakaton.Lemmings
         {
             for (int index = 0; index < materialPixels.Length; index++)
             {
-                colorPixels[index] = ColorFor(materialPixels[index]);
+                baseColorPixels[index] = BaseColorFor(materialPixels[index]);
+                decorativeColorPixels[index] = DecorativeColorFor(materialPixels[index]);
             }
         }
 
@@ -259,19 +284,24 @@ namespace Hakaton.Lemmings
             return false;
         }
 
-        private static Color32 ColorFor(TerrainMaterial material)
+        private static Color32 BaseColorFor(TerrainMaterial material)
         {
             switch (material)
             {
                 case TerrainMaterial.Platform:
                     return new Color32(164, 112, 78, 255);
-                case TerrainMaterial.DecorativePlatform:
-                    return new Color32(196, 158, 108, 255);
                 case TerrainMaterial.Wall:
                     return new Color32(96, 117, 149, 255);
                 default:
                     return new Color32(0, 0, 0, 0);
             }
+        }
+
+        private static Color32 DecorativeColorFor(TerrainMaterial material)
+        {
+            return material == TerrainMaterial.DecorativePlatform
+                ? new Color32(196, 158, 108, 255)
+                : new Color32(0, 0, 0, 0);
         }
 
         private int ToIndex(int x, int y)

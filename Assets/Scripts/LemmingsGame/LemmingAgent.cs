@@ -13,6 +13,7 @@ namespace Hakaton.Lemmings
         private const float DigRadius = 0.46f;
         private const float AnimationRate = 0.22f;
         private const float FallingAnimationThreshold = 0.2f;
+        private static readonly Vector3 VisualScale = new Vector3(1.2f, 1.2f, 1f);
         private static readonly Vector2 DigDirection = new Vector2(0.8660254f, -0.5f);
 
         private readonly Sprite[] fallSprites = new Sprite[2];
@@ -55,7 +56,11 @@ namespace Hakaton.Lemmings
             digSprites[0] = PixelArtFactory.CreateLemmingAtlasSprite(4);
             digSprites[1] = PixelArtFactory.CreateLemmingAtlasSprite(5);
 
-            spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+            GameObject visualObject = new GameObject("Visual");
+            visualObject.transform.SetParent(transform, false);
+            visualObject.transform.localScale = VisualScale;
+
+            spriteRenderer = visualObject.AddComponent<SpriteRenderer>();
             spriteRenderer.sortingOrder = 10;
             spriteRenderer.sprite = walkSprites[0];
 
