@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 namespace Hakaton.Lemmings
@@ -20,39 +19,18 @@ namespace Hakaton.Lemmings
 
         public static Sprite CreateLemmingAtlasSprite(int frame)
         {
-            const string textureCacheKey = "lemming_atlas_texture";
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "lemming_atlas.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("lemming_atlas");
+            if (texture != null)
             {
-                if (!SpriteCache.TryGetValue(textureCacheKey, out Sprite cachedTextureSprite))
-                {
-                    byte[] imageBytes = File.ReadAllBytes(spritePath);
-                    Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                    texture.filterMode = FilterMode.Point;
-                    texture.wrapMode = TextureWrapMode.Clamp;
-                    if (texture.LoadImage(imageBytes))
-                    {
-                        cachedTextureSprite = Sprite.Create(
-                            texture,
-                            new Rect(0f, 0f, texture.width, texture.height),
-                            new Vector2(0.5f, 0f),
-                            128f);
-                        SpriteCache[textureCacheKey] = cachedTextureSprite;
-                    }
-                }
-
-                if (cachedTextureSprite != null)
-                {
-                    int clampedFrame = Mathf.Clamp(frame, 0, 5);
-                    const int frameWidth = 128;
-                    const int frameHeight = 128;
-                    int frameX = frameWidth * clampedFrame;
-                    return GetOrCreateTextureSprite(
-                        $"lemming_atlas_frame_{clampedFrame}",
-                        cachedTextureSprite.texture,
-                        new Rect(frameX, 0f, frameWidth, frameHeight),
-                        new Vector2(0.5f, 0f));
-                }
+                int clampedFrame = Mathf.Clamp(frame, 0, 5);
+                const int frameWidth = 128;
+                const int frameHeight = 128;
+                int frameX = frameWidth * clampedFrame;
+                return GetOrCreateTextureSprite(
+                    $"lemming_atlas_frame_{clampedFrame}",
+                    texture,
+                    new Rect(frameX, 0f, frameWidth, frameHeight),
+                    new Vector2(0.5f, 0f));
             }
 
             return CreateLegacyLemmingWalkSprite(Mathf.Clamp(frame, 0, 1));
@@ -145,37 +123,15 @@ namespace Hakaton.Lemmings
 
         public static Sprite CreateSpawnSprite()
         {
-            const string textureCacheKey = "spawn_point_texture";
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "spawn_point.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("spawn_point");
+            if (texture != null)
             {
-                if (!SpriteCache.TryGetValue(textureCacheKey, out Sprite cachedTextureSprite))
-                {
-                    byte[] imageBytes = File.ReadAllBytes(spritePath);
-                    Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                    texture.filterMode = FilterMode.Point;
-                    texture.wrapMode = TextureWrapMode.Clamp;
-                    if (texture.LoadImage(imageBytes))
-                    {
-                        cachedTextureSprite = Sprite.Create(
-                            texture,
-                            new Rect(0f, 0f, texture.width, texture.height),
-                            new Vector2(0.5f, 0f),
-                            texture.height * 0.5f);
-                        SpriteCache[textureCacheKey] = cachedTextureSprite;
-                    }
-                }
-
-                if (cachedTextureSprite != null)
-                {
-                    int frameWidth = cachedTextureSprite.texture.width / 2;
-                    int frameX = frameWidth * Mathf.Clamp(0, 0, 1);
-                    return GetOrCreateTextureSprite(
-                        "spawn_point_frame_0",
-                        cachedTextureSprite.texture,
-                        new Rect(frameX, 0f, frameWidth, cachedTextureSprite.texture.height),
-                        new Vector2(0.5f, 0.5f));
-                }
+                int frameWidth = texture.width / 2;
+                return GetOrCreateTextureSprite(
+                    "spawn_point_frame_0",
+                    texture,
+                    new Rect(0f, 0f, frameWidth, texture.height),
+                    new Vector2(0.5f, 0.5f));
             }
 
             return GetOrCreateSprite(
@@ -202,38 +158,17 @@ namespace Hakaton.Lemmings
 
         public static Sprite CreateSpawnSprite(int frame)
         {
-            const string textureCacheKey = "spawn_point_texture";
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "spawn_point.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("spawn_point");
+            if (texture != null)
             {
-                if (!SpriteCache.TryGetValue(textureCacheKey, out Sprite cachedTextureSprite))
-                {
-                    byte[] imageBytes = File.ReadAllBytes(spritePath);
-                    Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                    texture.filterMode = FilterMode.Point;
-                    texture.wrapMode = TextureWrapMode.Clamp;
-                    if (texture.LoadImage(imageBytes))
-                    {
-                        cachedTextureSprite = Sprite.Create(
-                            texture,
-                            new Rect(0f, 0f, texture.width, texture.height),
-                            new Vector2(0.5f, 0f),
-                            texture.height * 0.5f);
-                        SpriteCache[textureCacheKey] = cachedTextureSprite;
-                    }
-                }
-
-                if (cachedTextureSprite != null)
-                {
-                    int clampedFrame = Mathf.Clamp(frame, 0, 1);
-                    int frameWidth = cachedTextureSprite.texture.width / 2;
-                    int frameX = frameWidth * clampedFrame;
-                    return GetOrCreateTextureSprite(
-                        $"spawn_point_frame_{clampedFrame}",
-                        cachedTextureSprite.texture,
-                        new Rect(frameX, 0f, frameWidth, cachedTextureSprite.texture.height),
-                        new Vector2(0.5f, 0.5f));
-                }
+                int clampedFrame = Mathf.Clamp(frame, 0, 1);
+                int frameWidth = texture.width / 2;
+                int frameX = frameWidth * clampedFrame;
+                return GetOrCreateTextureSprite(
+                    $"spawn_point_frame_{clampedFrame}",
+                    texture,
+                    new Rect(frameX, 0f, frameWidth, texture.height),
+                    new Vector2(0.5f, 0.5f));
             }
 
             return CreateSpawnSprite();
@@ -247,23 +182,16 @@ namespace Hakaton.Lemmings
                 return cachedExitSprite;
             }
 
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "exit_point.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("exit_point");
+            if (texture != null)
             {
-                byte[] imageBytes = File.ReadAllBytes(spritePath);
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                texture.filterMode = FilterMode.Point;
-                texture.wrapMode = TextureWrapMode.Clamp;
-                if (texture.LoadImage(imageBytes))
-                {
-                    Sprite loadedSprite = Sprite.Create(
-                        texture,
-                        new Rect(0f, 0f, texture.width, texture.height),
-                        new Vector2(0.5f, 0f),
-                        texture.height);
-                    SpriteCache[cacheKey] = loadedSprite;
-                    return loadedSprite;
-                }
+                Sprite loadedSprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0f),
+                    texture.height);
+                SpriteCache[cacheKey] = loadedSprite;
+                return loadedSprite;
             }
 
             return GetOrCreateSprite(
@@ -297,23 +225,16 @@ namespace Hakaton.Lemmings
                 return cachedAxeSprite;
             }
 
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "axe.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("axe");
+            if (texture != null)
             {
-                byte[] imageBytes = File.ReadAllBytes(spritePath);
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                texture.filterMode = FilterMode.Point;
-                texture.wrapMode = TextureWrapMode.Clamp;
-                if (texture.LoadImage(imageBytes))
-                {
-                    Sprite loadedSprite = Sprite.Create(
-                        texture,
-                        new Rect(0f, 0f, texture.width, texture.height),
-                        new Vector2(0.5f, 0.5f),
-                        texture.height);
-                    SpriteCache[cacheKey] = loadedSprite;
-                    return loadedSprite;
-                }
+                Sprite loadedSprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f),
+                    texture.height);
+                SpriteCache[cacheKey] = loadedSprite;
+                return loadedSprite;
             }
 
             return GetOrCreateSprite(
@@ -341,23 +262,16 @@ namespace Hakaton.Lemmings
                 return cachedSpikeSprite;
             }
 
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "thorns.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("thorns");
+            if (texture != null)
             {
-                byte[] imageBytes = File.ReadAllBytes(spritePath);
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                texture.filterMode = FilterMode.Point;
-                texture.wrapMode = TextureWrapMode.Clamp;
-                if (texture.LoadImage(imageBytes))
-                {
-                    Sprite loadedSprite = Sprite.Create(
-                        texture,
-                        new Rect(0f, 0f, texture.width, texture.height),
-                        new Vector2(0.5f, 0f),
-                        texture.height);
-                    SpriteCache[cacheKey] = loadedSprite;
-                    return loadedSprite;
-                }
+                Sprite loadedSprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0f),
+                    texture.height);
+                SpriteCache[cacheKey] = loadedSprite;
+                return loadedSprite;
             }
 
             return GetOrCreateSprite(
@@ -390,23 +304,16 @@ namespace Hakaton.Lemmings
                 return cachedStarSprite;
             }
 
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "star.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("star");
+            if (texture != null)
             {
-                byte[] imageBytes = File.ReadAllBytes(spritePath);
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                texture.filterMode = FilterMode.Point;
-                texture.wrapMode = TextureWrapMode.Clamp;
-                if (texture.LoadImage(imageBytes))
-                {
-                    Sprite loadedSprite = Sprite.Create(
-                        texture,
-                        new Rect(0f, 0f, texture.width, texture.height),
-                        new Vector2(0.5f, 0.5f),
-                        texture.height);
-                    SpriteCache[cacheKey] = loadedSprite;
-                    return loadedSprite;
-                }
+                Sprite loadedSprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f),
+                    texture.height);
+                SpriteCache[cacheKey] = loadedSprite;
+                return loadedSprite;
             }
 
             return GetOrCreateSprite(
@@ -434,23 +341,16 @@ namespace Hakaton.Lemmings
                 return cachedSkullSprite;
             }
 
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "skull.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("skull");
+            if (texture != null)
             {
-                byte[] imageBytes = File.ReadAllBytes(spritePath);
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                texture.filterMode = FilterMode.Point;
-                texture.wrapMode = TextureWrapMode.Clamp;
-                if (texture.LoadImage(imageBytes))
-                {
-                    Sprite loadedSprite = Sprite.Create(
-                        texture,
-                        new Rect(0f, 0f, texture.width, texture.height),
-                        new Vector2(0.5f, 0.5f),
-                        texture.height);
-                    SpriteCache[cacheKey] = loadedSprite;
-                    return loadedSprite;
-                }
+                Sprite loadedSprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f),
+                    texture.height);
+                SpriteCache[cacheKey] = loadedSprite;
+                return loadedSprite;
             }
 
             return GetOrCreateSprite(
@@ -483,23 +383,16 @@ namespace Hakaton.Lemmings
                 return cachedBackgroundSprite;
             }
 
-            string spritePath = Path.Combine(Application.dataPath, "Sprites", "back.png");
-            if (File.Exists(spritePath))
+            Texture2D texture = LoadSpriteTexture("back");
+            if (texture != null)
             {
-                byte[] imageBytes = File.ReadAllBytes(spritePath);
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                texture.filterMode = FilterMode.Point;
-                texture.wrapMode = TextureWrapMode.Clamp;
-                if (texture.LoadImage(imageBytes))
-                {
-                    Sprite loadedSprite = Sprite.Create(
-                        texture,
-                        new Rect(0f, 0f, texture.width, texture.height),
-                        new Vector2(0.5f, 0.5f),
-                        texture.height);
-                    SpriteCache[cacheKey] = loadedSprite;
-                    return loadedSprite;
-                }
+                Sprite loadedSprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f),
+                    texture.height);
+                SpriteCache[cacheKey] = loadedSprite;
+                return loadedSprite;
             }
 
             return GetOrCreateSprite(
@@ -583,6 +476,18 @@ namespace Hakaton.Lemmings
             Sprite sprite = Sprite.Create(texture, rect, pivot, rect.height);
             SpriteCache[cacheKey] = sprite;
             return sprite;
+        }
+
+        private static Texture2D LoadSpriteTexture(string assetName)
+        {
+            Texture2D texture = Resources.Load<Texture2D>($"sprites/{assetName}");
+            if (texture != null)
+            {
+                texture.filterMode = FilterMode.Point;
+                texture.wrapMode = TextureWrapMode.Clamp;
+            }
+
+            return texture;
         }
     }
 }
