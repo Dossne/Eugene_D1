@@ -12,6 +12,7 @@ namespace Hakaton.Lemmings
         private const float DigSpeed = 0.85f;
         private const float DigRadius = 0.46f;
         private const float AnimationRate = 0.22f;
+        private const float FallingAnimationThreshold = 0.2f;
         private static readonly Vector2 DigDirection = new Vector2(0.8660254f, -0.5f);
 
         private readonly Sprite[] fallSprites = new Sprite[2];
@@ -23,6 +24,7 @@ namespace Hakaton.Lemmings
         private float verticalVelocity;
         private float animationTimer;
         private int animationFrame;
+        private float fallDistanceSinceUngrounded;
         private TerrainMap terrainMap;
         private int currentDigPlatformId = -1;
         private float currentDigPlatformBottomY;
@@ -55,7 +57,7 @@ namespace Hakaton.Lemmings
 
             spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             spriteRenderer.sortingOrder = 10;
-            spriteRenderer.sprite = fallSprites[0];
+            spriteRenderer.sprite = walkSprites[0];
 
             GameObject highlightObject = new GameObject("Highlight");
             highlightObject.transform.SetParent(transform, false);
@@ -70,6 +72,7 @@ namespace Hakaton.Lemmings
             animationFrame = 0;
             forceInitialFall = true;
             isFalling = true;
+            fallDistanceSinceUngrounded = 0f;
             verticalVelocity = 0f;
         }
 
@@ -185,6 +188,7 @@ namespace Hakaton.Lemmings
             if (!terrainMap.IsGrounded(nextPosition, Width))
             {
                 isFalling = true;
+                fallDistanceSinceUngrounded = 0f;
             }
         }
 
@@ -192,6 +196,7 @@ namespace Hakaton.Lemmings
         {
             ResolveEmbeddedSolidForAirborneState();
 
+            float previousY = transform.position.y;
             verticalVelocity -= Gravity * deltaTime;
             float remaining = Mathf.Abs(verticalVelocity * deltaTime);
             int steps = Mathf.Max(1, Mathf.CeilToInt(remaining / FallStep));
@@ -203,6 +208,11 @@ namespace Hakaton.Lemmings
                 if (!terrainMap.OverlapsSolid(nextRect))
                 {
                     transform.position += new Vector3(0f, step, 0f);
+                    if (transform.position.y < previousY)
+                    {
+                        fallDistanceSinceUngrounded += previousY - transform.position.y;
+                        previousY = transform.position.y;
+                    }
                     continue;
                 }
 
@@ -210,6 +220,7 @@ namespace Hakaton.Lemmings
                 IsDigging = false;
                 forceInitialFall = false;
                 isFalling = false;
+                fallDistanceSinceUngrounded = 0f;
                 currentDigPlatformId = -1;
                 return;
             }
@@ -253,6 +264,7 @@ namespace Hakaton.Lemmings
             IsDigging = false;
             forceInitialFall = false;
             isFalling = true;
+            fallDistanceSinceUngrounded = 0f;
             verticalVelocity = Mathf.Min(verticalVelocity, -0.35f);
             currentDigPlatformId = -1;
             ResolveEmbeddedSolidForAirborneState();
@@ -280,7 +292,8 @@ namespace Hakaton.Lemmings
                 return;
             }
 
-            if (forceInitialFall || isFalling)
+            bool showFallingAnimation = isFalling && fallDistanceSinceUngrounded >= FallingAnimationThreshold;
+            if (showFallingAnimation)
             {
                 spriteRenderer.sprite = fallSprites[animationFrame];
             }
