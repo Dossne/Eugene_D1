@@ -291,6 +291,31 @@ namespace Hakaton.Lemmings
 
         public static Sprite CreatePickaxeSprite()
         {
+            const string cacheKey = "axe_asset";
+            if (SpriteCache.TryGetValue(cacheKey, out Sprite cachedAxeSprite))
+            {
+                return cachedAxeSprite;
+            }
+
+            string spritePath = Path.Combine(Application.dataPath, "Sprites", "axe.png");
+            if (File.Exists(spritePath))
+            {
+                byte[] imageBytes = File.ReadAllBytes(spritePath);
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                texture.filterMode = FilterMode.Point;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                if (texture.LoadImage(imageBytes))
+                {
+                    Sprite loadedSprite = Sprite.Create(
+                        texture,
+                        new Rect(0f, 0f, texture.width, texture.height),
+                        new Vector2(0.5f, 0.5f),
+                        texture.height);
+                    SpriteCache[cacheKey] = loadedSprite;
+                    return loadedSprite;
+                }
+            }
+
             return GetOrCreateSprite(
                 "pickaxe",
                 new[]
