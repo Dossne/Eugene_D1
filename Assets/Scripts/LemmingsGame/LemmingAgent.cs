@@ -175,6 +175,8 @@ namespace Hakaton.Lemmings
 
         private void UpdateFalling(float deltaTime)
         {
+            ResolveEmbeddedSolidForAirborneState();
+
             verticalVelocity -= Gravity * deltaTime;
             float remaining = Mathf.Abs(verticalVelocity * deltaTime);
             int steps = Mathf.Max(1, Mathf.CeilToInt(remaining / FallStep));
@@ -189,12 +191,8 @@ namespace Hakaton.Lemmings
                     continue;
                 }
 
-                while (terrainMap.OverlapsSolid(BoundsRect))
-                {
-                    transform.position += new Vector3(0f, 0.01f, 0f);
-                }
-
                 verticalVelocity = 0f;
+                IsDigging = false;
                 forceInitialFall = false;
                 isFalling = false;
                 return;
@@ -223,10 +221,36 @@ namespace Hakaton.Lemmings
                 transform.position = currentPosition + step;
             }
 
-            if (!terrainMap.HasAnyDestructibleMaterialInRect(OffsetRect(BoundsRect, new Vector2(Direction * 0.05f, -0.05f))) &&
-                !terrainMap.IsGrounded((Vector2)transform.position, Width))
+            bool hasDiggableMaterialAhead = terrainMap.HasAnyDestructibleMaterialInRect(
+                OffsetRect(BoundsRect, new Vector2(Direction * 0.05f, -0.05f)));
+            bool grounded = terrainMap.IsGrounded((Vector2)transform.position, Width);
+            if (!hasDiggableMaterialAhead && !grounded)
             {
-                isFalling = true;
+                EnterBreakthroughFall();
+            }
+        }
+
+        private void EnterBreakthroughFall()
+        {
+            IsDigging = false;
+            forceInitialFall = false;
+            isFalling = true;
+            verticalVelocity = Mathf.Min(verticalVelocity, -0.35f);
+            ResolveEmbeddedSolidForAirborneState();
+        }
+
+        private void ResolveEmbeddedSolidForAirborneState()
+        {
+            if (!terrainMap.OverlapsSolid(BoundsRect))
+            {
+                return;
+            }
+
+            const int maxSteps = 80;
+            const float stepSize = 0.02f;
+            for (int i = 0; i < maxSteps && terrainMap.OverlapsSolid(BoundsRect); i++)
+            {
+                transform.position += new Vector3(0f, -stepSize, 0f);
             }
         }
 
