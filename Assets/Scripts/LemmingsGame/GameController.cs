@@ -12,6 +12,7 @@ namespace Hakaton.Lemmings
         private const float SpawnDelay = 2f;
         private const float SpawnInterval = 1f;
         private const int EffectSortingOrder = 100;
+        private const float DeathFadeInDuration = 0.12f;
 
         private readonly List<LemmingAgent> lemmings = new List<LemmingAgent>();
 
@@ -70,6 +71,7 @@ namespace Hakaton.Lemmings
                 if (IsOnSpikes(lemming.BoundsRect))
                 {
                     deadCount++;
+                    PlayDeathEffect(lemming.BoundsRect.center);
                     lemming.Kill();
                     lemmings.RemoveAt(index);
                     RefreshCounters();
@@ -368,6 +370,55 @@ namespace Hakaton.Lemmings
                 float brightness = Mathf.Lerp(1f, 2.5f, envelope);
                 effectRenderer.color = new Color(brightness, brightness, brightness, envelope);
                 effectObject.transform.localScale = Vector3.one * (2f * envelope);
+                yield return null;
+            }
+
+            Destroy(effectObject);
+        }
+
+        private void PlayDeathEffect(Vector2 origin)
+        {
+            if (levelRoot == null)
+            {
+                return;
+            }
+
+            StartCoroutine(AnimateDeathEffect(origin));
+        }
+
+        private IEnumerator AnimateDeathEffect(Vector2 origin)
+        {
+            float duration = Random.Range(0.8f, 1.2f);
+            float riseDistance = Random.Range(0.8f, 1.5f);
+            float initialScale = Random.Range(0.6f, 0.8f);
+            float finalScale = Random.Range(1.2f, 1.6f);
+
+            GameObject effectObject = new GameObject("DeathSkullEffect");
+            effectObject.transform.SetParent(levelRoot.transform, false);
+            effectObject.transform.position = new Vector3(origin.x, origin.y, 0f);
+            effectObject.transform.localScale = Vector3.one * initialScale;
+
+            SpriteRenderer effectRenderer = effectObject.AddComponent<SpriteRenderer>();
+            effectRenderer.sprite = PixelArtFactory.CreateDeathSkullSprite();
+            effectRenderer.sortingOrder = EffectSortingOrder;
+            effectRenderer.color = new Color(1f, 1f, 1f, 0f);
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float normalized = Mathf.Clamp01(elapsed / duration);
+                float fadeInT = Mathf.Clamp01(elapsed / DeathFadeInDuration);
+                float riseT = 1f - Mathf.Pow(1f - normalized, 2f);
+                float scaleT = 1f - Mathf.Pow(1f - normalized, 2f);
+                float fadeOutT = Mathf.Clamp01((elapsed - DeathFadeInDuration) / Mathf.Max(0.01f, duration - DeathFadeInDuration));
+                float alpha = elapsed <= DeathFadeInDuration
+                    ? fadeInT
+                    : Mathf.Lerp(1f, 0f, fadeOutT);
+
+                effectObject.transform.position = new Vector3(origin.x, origin.y + riseDistance * riseT, 0f);
+                effectObject.transform.localScale = Vector3.one * Mathf.Lerp(initialScale, finalScale, scaleT);
+                effectRenderer.color = new Color(1f, 1f, 1f, alpha);
                 yield return null;
             }
 

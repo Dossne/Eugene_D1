@@ -426,6 +426,55 @@ namespace Hakaton.Lemmings
                 });
         }
 
+        public static Sprite CreateDeathSkullSprite()
+        {
+            const string cacheKey = "death_skull_asset";
+            if (SpriteCache.TryGetValue(cacheKey, out Sprite cachedSkullSprite))
+            {
+                return cachedSkullSprite;
+            }
+
+            string spritePath = Path.Combine(Application.dataPath, "Sprites", "skull.png");
+            if (File.Exists(spritePath))
+            {
+                byte[] imageBytes = File.ReadAllBytes(spritePath);
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                texture.filterMode = FilterMode.Point;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                if (texture.LoadImage(imageBytes))
+                {
+                    Sprite loadedSprite = Sprite.Create(
+                        texture,
+                        new Rect(0f, 0f, texture.width, texture.height),
+                        new Vector2(0.5f, 0.5f),
+                        texture.height);
+                    SpriteCache[cacheKey] = loadedSprite;
+                    return loadedSprite;
+                }
+            }
+
+            return GetOrCreateSprite(
+                "death_skull_fallback",
+                new[]
+                {
+                    "...rrrr...",
+                    "..rrrrrr..",
+                    ".rrr..rrr.",
+                    ".rr....rr.",
+                    ".rrr..rrr.",
+                    "..rrrrrr..",
+                    "..rr..rr..",
+                    ".rr....rr.",
+                    "..........",
+                    ".........."
+                },
+                new Dictionary<char, Color32>
+                {
+                    { '.', Transparent },
+                    { 'r', new Color32(208, 48, 48, 255) }
+                });
+        }
+
         public static Font GetUIFont()
         {
             Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
