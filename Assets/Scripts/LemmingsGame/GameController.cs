@@ -219,6 +219,8 @@ namespace Hakaton.Lemmings
 
         private void BuildLevelDecorations(Transform parent, ParsedLevel level)
         {
+            BuildBackground(parent, level);
+
             GameObject spawnObject = new GameObject("Spawn");
             spawnObject.transform.SetParent(parent, false);
             spawnObject.transform.position = new Vector3(level.SpawnPoint.x, level.SpawnPoint.y, 0f);
@@ -264,6 +266,51 @@ namespace Hakaton.Lemmings
                 renderer.sprite = PixelArtFactory.CreateSpikeSprite(spike.Orientation);
                 renderer.sortingOrder = 4;
                 renderer.flipY = spike.Orientation == SpikeOrientation.Down;
+            }
+        }
+
+        private void BuildBackground(Transform parent, ParsedLevel level)
+        {
+            const int horizontalTiles = 4;
+            const int verticalTiles = 5;
+            const int backgroundSortingOrder = -100;
+
+            Sprite backgroundSprite = PixelArtFactory.CreateBackgroundSprite();
+            if (backgroundSprite == null)
+            {
+                return;
+            }
+
+            GameObject backgroundRoot = new GameObject("Background");
+            backgroundRoot.transform.SetParent(parent, false);
+
+            Vector2 spriteSize = backgroundSprite.bounds.size;
+            float scaleFactor = Mathf.Max(
+                level.WidthCells / (horizontalTiles * Mathf.Max(0.01f, spriteSize.x)),
+                level.HeightCells / (verticalTiles * Mathf.Max(0.01f, spriteSize.y)));
+
+            Vector2 tileSize = spriteSize * scaleFactor;
+            Vector2 totalSize = new Vector2(tileSize.x * horizontalTiles, tileSize.y * verticalTiles);
+            Vector2 origin = new Vector2(
+                (level.WidthCells - totalSize.x) * 0.5f + tileSize.x * 0.5f,
+                (level.HeightCells - totalSize.y) * 0.5f + tileSize.y * 0.5f);
+
+            for (int y = 0; y < verticalTiles; y++)
+            {
+                for (int x = 0; x < horizontalTiles; x++)
+                {
+                    GameObject tileObject = new GameObject($"Tile_{x}_{y}");
+                    tileObject.transform.SetParent(backgroundRoot.transform, false);
+                    tileObject.transform.position = new Vector3(
+                        origin.x + x * tileSize.x,
+                        origin.y + y * tileSize.y,
+                        0f);
+                    tileObject.transform.localScale = new Vector3(scaleFactor, scaleFactor, 1f);
+
+                    SpriteRenderer renderer = tileObject.AddComponent<SpriteRenderer>();
+                    renderer.sprite = backgroundSprite;
+                    renderer.sortingOrder = backgroundSortingOrder;
+                }
             }
         }
 

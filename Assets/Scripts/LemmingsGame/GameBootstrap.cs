@@ -42,6 +42,12 @@ namespace Hakaton.Lemmings
                 eventSystemObject.AddComponent<StandaloneInputModule>();
             }
 
+            if (Object.FindFirstObjectByType<BackgroundMusicController>() == null)
+            {
+                GameObject musicObject = new GameObject("BackgroundMusic");
+                musicObject.AddComponent<BackgroundMusicController>();
+            }
+
             GameObject gameObject = new GameObject("GameController");
             gameObject.AddComponent<GameController>();
         }
