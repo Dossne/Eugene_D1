@@ -278,8 +278,8 @@ namespace Hakaton.Lemmings
         private IEnumerator PlayLevelIntro(int levelNumber)
         {
             introText.text = $"Level {levelNumber}";
-            yield return FadeText(0f, 1f, 1.5f);
-            yield return new WaitForSeconds(3f);
+            yield return FadeText(0f, 1f, 0.5f);
+            yield return new WaitForSeconds(1.5f);
             yield return FadeText(1f, 0f, 0.5f);
         }
 
