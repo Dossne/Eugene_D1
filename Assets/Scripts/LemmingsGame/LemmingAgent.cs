@@ -82,7 +82,13 @@ namespace Hakaton.Lemmings
 
         public void AssignPickaxe()
         {
+            if (!IsAlive || IsDigging)
+            {
+                return;
+            }
+
             IsDigging = true;
+            verticalVelocity = 0f;
             animationFrame = 0;
             animationTimer = 0f;
             RefreshSprite();

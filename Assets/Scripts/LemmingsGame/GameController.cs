@@ -171,6 +171,7 @@ namespace Hakaton.Lemmings
             Image iconImage = iconObject.AddComponent<Image>();
             iconImage.sprite = PixelArtFactory.CreatePickaxeSprite();
             iconImage.preserveAspect = true;
+            iconImage.raycastTarget = false;
             RectTransform iconRect = (RectTransform)iconObject.transform;
             iconRect.anchorMin = new Vector2(0.5f, 0.5f);
             iconRect.anchorMax = new Vector2(0.5f, 0.5f);
@@ -315,13 +316,21 @@ namespace Hakaton.Lemmings
                 return;
             }
 
-            if (IsPointerOverUi(fingerId))
+            Vector3 worldPoint = mainCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z));
+            if (TryAssignPickaxeAtWorldPoint(worldPoint))
             {
                 return;
             }
 
-            Vector3 worldPoint = mainCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z));
-            for (int i = 0; i < lemmings.Count; i++)
+            if (IsPointerOverUi(fingerId))
+            {
+                return;
+            }
+        }
+
+        private bool TryAssignPickaxeAtWorldPoint(Vector2 worldPoint)
+        {
+            for (int i = lemmings.Count - 1; i >= 0; i--)
             {
                 LemmingAgent lemming = lemmings[i];
                 if (lemming == null || lemming.IsDigging || !lemming.IsAlive)
@@ -338,8 +347,10 @@ namespace Hakaton.Lemmings
                 selectingPickaxeTarget = false;
                 pickaxeButtonImage.color = new Color32(222, 176, 69, 255);
                 RefreshHighlights();
-                break;
+                return true;
             }
+
+            return false;
         }
 
         private void EvaluateLevelState()
@@ -443,6 +454,7 @@ namespace Hakaton.Lemmings
             text.color = Color.white;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Overflow;
+            text.raycastTarget = false;
             return text;
         }
 
@@ -452,6 +464,7 @@ namespace Hakaton.Lemmings
             buttonObject.transform.SetParent(parent, false);
             Image image = buttonObject.AddComponent<Image>();
             image.color = color;
+            image.raycastTarget = true;
             Button button = buttonObject.AddComponent<Button>();
 
             if (!string.IsNullOrEmpty(label))
@@ -474,6 +487,7 @@ namespace Hakaton.Lemmings
             panelObject.transform.SetParent(parent, false);
             Image image = panelObject.AddComponent<Image>();
             image.color = color;
+            image.raycastTarget = false;
             return panelObject;
         }
 
